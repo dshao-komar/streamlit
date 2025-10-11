@@ -18,6 +18,7 @@ st.caption("Submit daily machine output. Data is automatically saved to GitHub."
 GITHUB_TOKEN = st.secrets["github_token"]
 REPO = st.secrets["github_repo"]
 FILE_PATH = st.secrets["github_file_path"]
+BRANCH = st.secrets.get("github_branch", "main")
 USER_EMAIL = st.secrets.get("github_user_email", "unknown@example.com")
 USER_NAME = st.secrets.get("github_user_name", "Streamlit Bot")
 
@@ -42,19 +43,54 @@ with col1:
 with col2:
     shift = st.selectbox("Shift", options=["Shift 1", "Shift 2"])
 
-st.markdown("---")
-st.subheader("Enter Pounds Produced per Machine")
+day_of_week = entry_date.strftime("%A")
 
+st.markdown("---")
+st.subheader("Enter Production Details per Machine")
+
+# Build form layout
 with st.form("daily_output_form", clear_on_submit=True):
-    pounds = {}
+    # Table-like header row
+    header_cols = st.columns([2, 1.5, 1, 2])
+    header_cols[0].markdown("**Machine**")
+    header_cols[1].markdown("**LB Produced**")
+    header_cols[2].markdown("**No Schedule**")
+    header_cols[3].markdown("**Notes**")
+
+    # Storage for user inputs
+    rows = []
     for machine in MACHINES:
-        pounds[machine] = st.number_input(
-            f"{machine} (LB Produced)",
-            min_value=0.0,
-            step=1.0,
-            value=0.0,
-            key=f"{machine}_{shift}"
-        )
+        c1, c2, c3, c4 = st.columns([2, 1.5, 1, 2])
+        with c1:
+            st.write(machine)
+        with c2:
+            lbs = st.number_input(
+                f"{machine}_lbs",
+                label_visibility="collapsed",
+                min_value=0.0,
+                step=1.0,
+                value=0.0,
+                key=f"lbs_{machine}"
+            )
+        with c3:
+            no_schedule = st.checkbox(
+                " ",
+                key=f"no_sched_{machine}",
+                label_visibility="collapsed"
+            )
+        with c4:
+            notes = st.text_input(
+                f"{machine}_notes",
+                label_visibility="collapsed",
+                placeholder="e.g. Sick Operator"
+            )
+
+        rows.append({
+            "Machine Name": machine,
+            "Total Produced (LB)": lbs,
+            "No Schedule": "X" if no_schedule else "",
+            "Notes": notes.strip()
+        })
 
     submitted = st.form_submit_button("Submit Daily Output")
 
@@ -69,8 +105,7 @@ def fetch_github_file():
         sha = response.json()["sha"]
         return content, sha
     elif response.status_code == 404:
-        # File not found; we'll create it
-        return "", None
+        return "", None  # new file case
     else:
         raise Exception(f"GitHub API error: {response.status_code} - {response.text}")
 
@@ -81,7 +116,7 @@ def commit_to_github(updated_csv, sha=None):
     payload = {
         "message": message,
         "content": content_encoded,
-        "branch": "main",  # or your branch name
+        "branch": BRANCH,
         "committer": {"name": USER_NAME, "email": USER_EMAIL},
     }
     if sha:
@@ -95,14 +130,10 @@ def commit_to_github(updated_csv, sha=None):
 # PROCESS SUBMISSION
 # ---------------------------------------------------------
 if submitted:
-    df_new = pd.DataFrame(
-        {
-            "Date": [entry_date] * len(MACHINES),
-            "Shift": [shift] * len(MACHINES),
-            "Machine Name": MACHINES,
-            "Total Produced (LB)": [pounds[m] for m in MACHINES],
-        }
-    )
+    df_new = pd.DataFrame(rows)
+    df_new.insert(0, "Date", entry_date)
+    df_new.insert(1, "Day of Week", day_of_week)
+    df_new.insert(2, "Shift", shift)
 
     try:
         content, sha = fetch_github_file()
