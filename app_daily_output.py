@@ -35,6 +35,17 @@ MACHINES = [
 ]
 
 # ---------------------------------------------------------
+# Initialize session_state defaults
+# ---------------------------------------------------------
+for machine in MACHINES:
+    if f"lbs_{machine}" not in st.session_state:
+        st.session_state[f"lbs_{machine}"] = 0
+    if f"no_sched_{machine}" not in st.session_state:
+        st.session_state[f"no_sched_{machine}"] = False
+    if f"notes_{machine}" not in st.session_state:
+        st.session_state[f"notes_{machine}"] = ""
+
+# ---------------------------------------------------------
 # UI: Entry Form
 # ---------------------------------------------------------
 col1, col2 = st.columns(2)
@@ -48,49 +59,58 @@ day_of_week = entry_date.strftime("%A")
 st.markdown("---")
 st.subheader("Enter Production Details per Machine")
 
-# Build form layout
-with st.form("daily_output_form", clear_on_submit=True):
-    # Table-like header row
+# ---------------------------------------------------------
+# Form Layout
+# ---------------------------------------------------------
+with st.form("daily_output_form", clear_on_submit=False):
     header_cols = st.columns([2, 1.5, 1, 2])
     header_cols[0].markdown("**Machine**")
     header_cols[1].markdown("**LB Produced**")
     header_cols[2].markdown("**No Schedule**")
     header_cols[3].markdown("**Notes**")
 
-    # Storage for user inputs
     rows = []
+    validation_errors = []
+
     for machine in MACHINES:
         c1, c2, c3, c4 = st.columns([2, 1.5, 1, 2])
         with c1:
             st.write(machine)
         with c2:
-            lbs = st.number_input(
+            st.session_state[f"lbs_{machine}"] = st.number_input(
                 f"{machine}_lbs",
                 label_visibility="collapsed",
                 min_value=0.0,
                 step=1.0,
-                value=0.0,
+                value=st.session_state[f"lbs_{machine}"],
                 key=f"lbs_{machine}"
             )
         with c3:
-            no_schedule = st.checkbox(
+            st.session_state[f"no_sched_{machine}"] = st.checkbox(
                 " ",
+                label_visibility="collapsed",
                 key=f"no_sched_{machine}",
-                label_visibility="collapsed"
+                value=st.session_state[f"no_sched_{machine}"]
             )
         with c4:
-            notes = st.text_input(
+            st.session_state[f"notes_{machine}"] = st.text_input(
                 f"{machine}_notes",
                 label_visibility="collapsed",
-                placeholder="e.g. Sick Operator"
+                placeholder="e.g. Sick Operator",
+                value=st.session_state[f"notes_{machine}"]
             )
 
+        # Add to data rows
         rows.append({
             "Machine Name": machine,
-            "Total Produced (LB)": lbs,
-            "No Schedule": "X" if no_schedule else "",
-            "Notes": notes.strip()
+            "Total Produced (LB)": st.session_state[f"lbs_{machine}"],
+            "No Schedule": "X" if st.session_state[f"no_sched_{machine}"] else "",
+            "Notes": st.session_state[f"notes_{machine}"].strip()
         })
+
+        # Validation check
+        if (st.session_state[f"lbs_{machine}"] == 0) and (not st.session_state[f"no_sched_{machine}"]):
+            validation_errors.append(machine)
 
     submitted = st.form_submit_button("Submit Daily Output")
 
@@ -131,8 +151,9 @@ def commit_to_github(updated_csv, sha=None):
 # ---------------------------------------------------------
 if submitted:
     # Basic validation
-    if (lbs == 0) and (not no_schedule):
-        st.error("If machine had 0 production, please check the box for No Schedule.")
+    if validation_errors:
+        err_list = ", ".join(validation_errors)
+        st.error(f"If machine had 0 production, please check the box for No Schedule. Affected machines: {err_list}")
     else:
         df_new = pd.DataFrame(rows)
         df_new.insert(0, "Machine Name", df_new.pop("Machine Name"))
@@ -154,6 +175,12 @@ if submitted:
 
             st.success(f"✅ Data submitted and saved to GitHub for {entry_date} ({shift})!")
             st.dataframe(df_new)
+
+            # Clear all values after successful submit
+            for machine in MACHINES:
+                st.session_state[f"lbs_{machine}"] = 0
+                st.session_state[f"no_sched_{machine}"] = False
+                st.session_state[f"notes_{machine}"] = ""
 
         except Exception as e:
             st.error(f"❌ Error updating GitHub file: {e}")
