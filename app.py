@@ -6,25 +6,18 @@ from pathlib import Path
 
 st.set_page_config(page_title="Production Output Dashboard", layout="wide")
 
-# -----------------------------------------------------------
-# FILE CONFIGURATION
-# -----------------------------------------------------------
-# You can hardcode or make this a text input for flexibility.
-default_path = Path(r"C:/Users/DanShao/OneDrive - Komar Alliance/Production Logs/September 2025/September Averages.xlsx")
+# Path relative to repo root
+data_path = Path("data/September Averages.xlsx")
+sheet_name = "Daily by Shifts"
 
 st.title("🏭 Production Output Dashboard")
 st.write("Shift Date Range: September 4-25, 2025")
 
-# Let user confirm or override file path
-excel_path = st.text_input("Path to Excel file:", str(default_path))
-sheet_name = "Daily by Shifts"
-
-# -----------------------------------------------------------
-# LOAD DATA
-# -----------------------------------------------------------
 try:
-    df = pd.read_excel(excel_path, sheet_name=sheet_name, engine="openpyxl")
-    # st.success(f"✅ Loaded sheet '{sheet_name}' successfully!")
+    df = pd.read_excel(data_path, sheet_name=sheet_name, engine="openpyxl")
+except FileNotFoundError:
+    st.error("❌ Could not find 'data/September Averages.xlsx'. Make sure it's included in the repo.")
+    st.stop()
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
     st.stop()
