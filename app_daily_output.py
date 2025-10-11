@@ -77,39 +77,40 @@ with st.form("daily_output_form", clear_on_submit=False):
         with c1:
             st.write(machine)
         with c2:
-            st.session_state[f"lbs_{machine}"] = st.number_input(
+            st.number_input(
                 f"{machine}_lbs",
                 label_visibility="collapsed",
-                min_value=0.0,
-                step=1.0,
-                value=st.session_state[f"lbs_{machine}"],
-                key=f"lbs_{machine}"
+                min_value=0,
+                step=1,
+                key=f"lbs_{machine}",
             )
         with c3:
-            st.session_state[f"no_sched_{machine}"] = st.checkbox(
+            st.checkbox(
                 " ",
                 label_visibility="collapsed",
                 key=f"no_sched_{machine}",
-                value=st.session_state[f"no_sched_{machine}"]
             )
         with c4:
-            st.session_state[f"notes_{machine}"] = st.text_input(
+            st.text_input(
                 f"{machine}_notes",
                 label_visibility="collapsed",
                 placeholder="e.g. Sick Operator",
-                value=st.session_state[f"notes_{machine}"]
+                key=f"notes_{machine}",
             )
 
-        # Add to data rows
+        lbs = st.session_state[f"lbs_{machine}"]
+        no_schedule = st.session_state[f"no_sched_{machine}"]
+        notes = st.session_state[f"notes_{machine}"].strip()
+
         rows.append({
             "Machine Name": machine,
-            "Total Produced (LB)": st.session_state[f"lbs_{machine}"],
-            "No Schedule": "X" if st.session_state[f"no_sched_{machine}"] else "",
-            "Notes": st.session_state[f"notes_{machine}"].strip()
+            "Total Produced (LB)": lbs,
+            "No Schedule": "X" if no_schedule else "",
+            "Notes": notes
         })
 
         # Validation check
-        if (st.session_state[f"lbs_{machine}"] == 0) and (not st.session_state[f"no_sched_{machine}"]):
+        if (lbs == 0) and (not no_schedule):
             validation_errors.append(machine)
 
     submitted = st.form_submit_button("Submit Daily Output")
