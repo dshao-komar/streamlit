@@ -1,0 +1,38 @@
+name: Nightly CSV to Excel Sync
+
+on:
+  schedule:
+    # Midnight Pacific = 07:00 UTC
+    - cron: '0 7 * * *'
+  workflow_dispatch:  # allow manual run
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas openpyxl
+
+      - name: Append CSV to Excel
+        run: python scripts/append_to_excel.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/September\ Averages.xlsx
+          git commit -m "Nightly sync: append new rows to Excel"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
