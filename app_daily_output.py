@@ -131,7 +131,7 @@ def commit_to_github(updated_csv, sha=None):
 # ---------------------------------------------------------
 if submitted:
     # Basic validation
-    if (lb_produced == 0) and (not no_schedule):
+    if (lbs == 0) and (not no_schedule):
         st.error("If machine had 0 production, please check the box for No Schedule.")
     else:
         df_new = pd.DataFrame(rows)
