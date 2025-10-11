@@ -35,6 +35,16 @@ MACHINES = [
 ]
 
 # ---------------------------------------------------------
+# Reset form if prior run requested it
+# ---------------------------------------------------------
+if st.session_state.get("reset_form", False):
+    for machine in MACHINES:
+        st.session_state.pop(f"lbs_{machine}", None)
+        st.session_state.pop(f"no_sched_{machine}", None)
+        st.session_state.pop(f"notes_{machine}", None)
+    st.session_state["reset_form"] = False
+
+# ---------------------------------------------------------
 # Initialize session_state defaults
 # ---------------------------------------------------------
 for machine in MACHINES:
@@ -177,13 +187,8 @@ if submitted:
             st.success(f"✅ Data submitted and saved to GitHub for {entry_date} ({shift})!")
             st.dataframe(df_new)
 
-            # Safely clear state on next rerun
-            for machine in MACHINES:
-                del st.session_state[f"lbs_{machine}"]
-                del st.session_state[f"no_sched_{machine}"]
-                del st.session_state[f"notes_{machine}"]
-
-            st.experimental_rerun()
+            # trigger reset for next rerun
+            st.session_state["reset_form"] = True
 
         except Exception as e:
             st.error(f"❌ Error updating GitHub file: {e}")
