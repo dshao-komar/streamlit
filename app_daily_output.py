@@ -177,11 +177,13 @@ if submitted:
             st.success(f"✅ Data submitted and saved to GitHub for {entry_date} ({shift})!")
             st.dataframe(df_new)
 
-            # Clear all values after successful submit
+            # Safely clear state on next rerun
             for machine in MACHINES:
-                st.session_state[f"lbs_{machine}"] = 0
-                st.session_state[f"no_sched_{machine}"] = False
-                st.session_state[f"notes_{machine}"] = ""
+                del st.session_state[f"lbs_{machine}"]
+                del st.session_state[f"no_sched_{machine}"]
+                del st.session_state[f"notes_{machine}"]
+
+            st.experimental_rerun()
 
         except Exception as e:
             st.error(f"❌ Error updating GitHub file: {e}")
