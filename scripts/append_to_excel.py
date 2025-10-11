@@ -17,6 +17,9 @@ def append_new_rows():
     existing_df = pd.DataFrame(existing_df.values[1:], columns=header)
 
     # Find new rows (based on full record uniqueness)
+    csv_df['Notes'] = csv_df['Notes'].astype(str)
+    existing_df['Notes'] = existing_df['Notes'].astype(str)
+
     merged = csv_df.merge(existing_df, how="left", indicator=True)
     new_rows = merged[merged["_merge"] == "left_only"].drop(columns="_merge")
 
