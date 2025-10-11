@@ -29,7 +29,7 @@ HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"}
 # Machine List
 # ---------------------------------------------------------
 MACHINES = [
-    "Jenny", "Cutter 1", "Cutter 2", "Cutter 3",
+    "Jenny", "Cutter 1", "Cutter 2", "Cutter 3", "Die Cutter",
     "PC1", "PC2", "PC3", "PC5", "AW1",
     "Sheeter 1", "Sheeter 2"
 ]
@@ -131,9 +131,10 @@ def commit_to_github(updated_csv, sha=None):
 # ---------------------------------------------------------
 if submitted:
     df_new = pd.DataFrame(rows)
-    df_new.insert(0, "Date", entry_date)
-    df_new.insert(1, "Day of Week", day_of_week)
-    df_new.insert(2, "Shift", shift)
+    df_new.insert(0, "Machine Name", df_new.pop("Machine Name"))
+    df_new.insert(1, "Date", entry_date)
+    df_new.insert(2, "Day of Week", day_of_week)
+    df_new.insert(3, "Shift", shift)
 
     try:
         content, sha = fetch_github_file()
