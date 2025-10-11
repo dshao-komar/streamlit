@@ -130,26 +130,30 @@ def commit_to_github(updated_csv, sha=None):
 # PROCESS SUBMISSION
 # ---------------------------------------------------------
 if submitted:
-    df_new = pd.DataFrame(rows)
-    df_new.insert(0, "Machine Name", df_new.pop("Machine Name"))
-    df_new.insert(1, "Date", entry_date)
-    df_new.insert(2, "Day of Week", day_of_week)
-    df_new.insert(3, "Shift", shift)
+    # Basic validation
+    if (lb_produced == 0) and (not no_schedule):
+        st.error("If machine had 0 production, please check the box for No Schedule.")
+    else:
+        df_new = pd.DataFrame(rows)
+        df_new.insert(0, "Machine Name", df_new.pop("Machine Name"))
+        df_new.insert(1, "Date", entry_date)
+        df_new.insert(2, "Day of Week", day_of_week)
+        df_new.insert(3, "Shift", shift)
 
-    try:
-        content, sha = fetch_github_file()
-        if content.strip():
-            df_existing = pd.read_csv(StringIO(content))
-            df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-        else:
-            df_combined = df_new
+        try:
+            content, sha = fetch_github_file()
+            if content.strip():
+                df_existing = pd.read_csv(StringIO(content))
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            else:
+                df_combined = df_new
 
-        csv_buffer = StringIO()
-        df_combined.to_csv(csv_buffer, index=False)
-        commit_to_github(csv_buffer.getvalue(), sha)
+            csv_buffer = StringIO()
+            df_combined.to_csv(csv_buffer, index=False)
+            commit_to_github(csv_buffer.getvalue(), sha)
 
-        st.success(f"✅ Data submitted and saved to GitHub for {entry_date} ({shift})!")
-        st.dataframe(df_new)
+            st.success(f"✅ Data submitted and saved to GitHub for {entry_date} ({shift})!")
+            st.dataframe(df_new)
 
-    except Exception as e:
-        st.error(f"❌ Error updating GitHub file: {e}")
+        except Exception as e:
+            st.error(f"❌ Error updating GitHub file: {e}")
