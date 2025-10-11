@@ -2,16 +2,16 @@ name: Nightly CSV to Excel Sync
 
 on:
   schedule:
-    # Midnight Pacific = 07:00 UTC
-    - cron: '0 7 * * *'
-  workflow_dispatch:  # allow manual run
+    - cron: '0 7 * * *'  # midnight Pacific
+  workflow_dispatch:
 
 permissions:
-  contents: write  # to commit changes
+  contents: write
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,24 +25,35 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pandas openpyxl
+        run: pip install pandas openpyxl
 
       - name: Append CSV to Excel
+        id: append
         run: python scripts/append_to_excel.py
 
       - name: Create timestamped backup
+        if: steps.append.outcome == 'success' && steps.append.conclusion == 'success'
         run: |
           mkdir -p streamlit/data/backups
           timestamp=$(date +'%Y-%m-%d_%H-%M-%S')
           cp "streamlit/data/September Averages.xlsx" "streamlit/data/backups/September_Averages_${timestamp}.xlsx"
 
       - name: Commit and push changes
+        if: steps.append.conclusion == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add "streamlit/data/September Averages.xlsx" "streamlit/data/backups/September_Averages_"*.xlsx
-          git commit -m "Nightly sync + backup: append new rows to Excel" || echo "No changes to commit"
+          git add "streamlit/data/September Averages.xlsx" "streamlit/data/backups/September_Averages_"*.xlsx || true
+          git commit -m "Nightly sync + backup: append or update Excel" || echo "No changes to commit"
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+
+      - name: Publish summary to workflow run
+        if: always()
+        run: |
+          echo "### 🧾 Nightly Sync Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f sync_summary.md ]; then
+            cat sync_summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "_No summary file found._" >> $GITHUB_STEP_SUMMARY
