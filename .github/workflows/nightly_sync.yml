@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug: list repo contents
+      - name: Debug - list repo contents
         run: |
           echo "Current working directory:"
           pwd
