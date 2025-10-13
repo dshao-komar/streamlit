@@ -45,9 +45,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout main || git checkout -b main
+          
           git add "streamlit/data/September Averages.xlsx" "streamlit/data/backups/September_Averages_"*.xlsx || true
-          git commit -m "Nightly sync + backup: append or update Excel" || echo "No changes to commit"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Nightly sync + backup: append or update Excel"
+            git push origin main
+          fi
 
       - name: Publish summary to workflow run
         if: always()
