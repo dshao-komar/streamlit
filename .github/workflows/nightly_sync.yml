@@ -51,7 +51,7 @@ jobs:
           git add "data/September Averages.xlsx" "streamlit/data/backups/September_Averages_"*.xlsx || true
           if ! git diff --cached --quiet; then
             git commit -m "Nightly sync + backup: append or update Excel"
-            git push origin main
+            git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
           else
             echo "No changes to commit."
           fi
