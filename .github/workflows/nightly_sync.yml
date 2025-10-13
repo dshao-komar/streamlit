@@ -57,3 +57,4 @@ jobs:
             cat sync_summary.md >> $GITHUB_STEP_SUMMARY
           else
             echo "_No summary file found._" >> $GITHUB_STEP_SUMMARY
+          fi
