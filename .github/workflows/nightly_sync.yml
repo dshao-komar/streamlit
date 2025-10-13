@@ -18,17 +18,7 @@ jobs:
         with:
           persist-credentials: false
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Debug - list repo contents
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Listing top-level files:"
-          ls -al
-          echo "Listing streamlit/data directory if it exists:"
-          ls -al streamlit/data || echo "streamlit/data not found"
-
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -46,7 +36,7 @@ jobs:
         run: |
           mkdir -p streamlit/data/backups
           timestamp=$(date +'%Y-%m-%d_%H-%M-%S')
-          cp "streamlit/data/September Averages.xlsx" "streamlit/data/backups/September_Averages_${timestamp}.xlsx"
+          cp "data/September Averages.xlsx" "streamlit/data/backups/September_Averages_${timestamp}.xlsx"
 
       - name: Commit and push changes
         if: steps.append.conclusion == 'success'
