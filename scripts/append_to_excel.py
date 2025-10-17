@@ -78,4 +78,4 @@ def append_or_update_rows():
 if __name__ == "__main__":
     changed = append_or_update_rows()
     import sys
-    sys.exit(0 if changed else 78)  # 78 = no change
+    sys.exit(0)
