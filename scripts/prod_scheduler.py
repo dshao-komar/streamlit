@@ -25,10 +25,7 @@ st.title("⚙️ Total Production Weight by Machine & Scheduler")
 # ---------------------------------------------------------
 conn_str = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    f"SERVER={st.secrets['sql']['server']};"
-    f"DATABASE={st.secrets['sql']['database']};"
-    f"UID={st.secrets['sql']['user']};"
-    f"PWD={st.secrets['sql']['password']};"
+    f"SERVER={server};DATABASE={database};UID={uid};PWD={pwd};"
 )
 conn = pyodbc.connect(conn_str)
 
@@ -181,10 +178,16 @@ week_df = wk_df[
 # --- Compute late (past-due) carryover by machine (only dates < today) ---
 past_due_df = wk_df[wk_df["expected_completion_date"].dt.date < today_date]
 carryover_map = {}
+carryover_orders_map = {}
 if not past_due_df.empty:
     carryover_map = (
         past_due_df.groupby("production_machine")["extended_weight"]
         .sum()
+        .to_dict()
+    )
+    carryover_orders_map = (
+        past_due_df.groupby("production_machine")["prod_order_number"]
+        .nunique()
         .to_dict()
     )
 
@@ -192,11 +195,20 @@ if not past_due_df.empty:
 # (We do this whether or not following week is shown; today's still in the window.)
 if carryover_map:
     today_stamp = pd.Timestamp(today_date)
-    carry_rows = pd.DataFrame({
-        "production_machine": list(carryover_map.keys()),
-        "expected_completion_date": today_stamp,
-        "extended_weight": list(carryover_map.values()),
-    })
+    # Build a row per machine with total weight and correct number of dummy order numbers
+    carry_rows_list = []
+    for machine, weight in carryover_map.items():
+        order_count = carryover_orders_map.get(machine, 0)
+        # create one row per late order so distinct count == number of late orders
+        for i in range(order_count):
+            carry_rows_list.append({
+                "production_machine": machine,
+                "expected_completion_date": today_stamp,
+                "extended_weight": weight / max(order_count, 1),  # evenly split for totals to still sum up
+                "prod_order_number": f"late_{machine}_{i+1}",
+                "scheduler_name": "Past-due carryover"
+            })
+    carry_rows = pd.DataFrame(carry_rows_list)
     # Optional label column to indicate provenance if you want to keep it
     if "scheduler_name" in week_df.columns and "scheduler_name" not in carry_rows.columns:
         carry_rows["scheduler_name"] = "Past-due carryover"
@@ -205,10 +217,16 @@ if carryover_map:
 # Create explicit date for grouping
 week_df["completion_date"] = week_df["expected_completion_date"].dt.date
 
-# Group and aggregate by machine + date (totals now include carryover)
+# Group and aggregate by machine + date
+agg_funcs = {
+    "extended_weight": "sum",
+    "prod_order_number": pd.Series.nunique
+}
+
 week_summary = (
-    week_df.groupby(["production_machine", "completion_date"], as_index=False)["extended_weight"]
-    .sum()
+    week_df.groupby(["production_machine", "completion_date"], as_index=False)
+    .agg(agg_funcs)
+    .rename(columns={"prod_order_number": "order_count"})
     .sort_values(["production_machine", "completion_date"])
 )
 
@@ -221,7 +239,16 @@ def display_with_carry(row):
             return f"{val:.2f} ({late:.2f} from late)"
     return f"{val:.2f}"
 
+def display_order_count_with_carry(row):
+    val = int(row["order_count"])
+    if row["completion_date"] == today_date:
+        late_orders = carryover_orders_map.get(row["production_machine"], 0)
+        if late_orders > 0:
+            return f"{val} ({late_orders} from late)"
+    return str(val)
+
 week_summary["extended_weight_display"] = week_summary.apply(display_with_carry, axis=1)
+week_summary["order_count_display"] = week_summary.apply(display_order_count_with_carry, axis=1)
 
 # Dropdown filter by machine
 machines = ["All"] + sorted(week_summary["production_machine"].unique().tolist())
@@ -232,8 +259,16 @@ week_filtered = week_summary if selected_machine == "All" else week_summary[week
 
 # Show only the display column so the cell reads "total (late)" on today's date
 week_to_show = (
-    week_filtered[["production_machine", "completion_date", "extended_weight_display"]]
-    .rename(columns={"extended_weight_display": "extended_weight"})
+    week_filtered[[
+        "production_machine",
+        "completion_date",
+        "extended_weight_display",
+        "order_count_display"
+    ]]
+    .rename(columns={
+        "extended_weight_display": "extended_weight",
+        "order_count_display": "order_count"
+    })
 )
 
 st.dataframe(week_to_show, use_container_width=True)
