@@ -1,0 +1,15 @@
+# Ignore local environment files
+.env
+
+# Ignore Python cache and build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Streamlit’s internal folder
+.streamlit/
+
+# Ignore virtual environments
+venv/
+env/
