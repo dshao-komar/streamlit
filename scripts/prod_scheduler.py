@@ -25,7 +25,10 @@ st.title("⚙️ Total Production Weight by Machine & Scheduler")
 # ---------------------------------------------------------
 conn_str = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    f"SERVER={server};DATABASE={database};UID={uid};PWD={pwd};"
+    f"SERVER={st.secrets['sql']['server']};"
+    f"DATABASE={st.secrets['sql']['database']};"
+    f"UID={st.secrets['sql']['user']};"
+    f"PWD={st.secrets['sql']['password']};"
 )
 conn = pyodbc.connect(conn_str)
 
