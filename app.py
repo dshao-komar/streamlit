@@ -43,14 +43,22 @@ df = df.dropna(subset=["Total Produced (LB)"])
 # st.dataframe(df.head(20))
 
 # -----------------------------------------------------------
-# AGGREGATION
+# AGGREGATION (combine shifts per day)
 # -----------------------------------------------------------
+# First, combine all shifts in a day for each machine
+daily_df = (
+    df.groupby(["Machine Name", "Date"], dropna=False)["Total Produced (LB)"]
+    .sum()
+    .reset_index()
+)
+
+# Then compute per-machine summary across days
 agg_df = (
-    df.groupby("Machine Name", dropna=False)["Total Produced (LB)"]
+    daily_df.groupby("Machine Name", dropna=False)["Total Produced (LB)"]
     .agg(["count", "mean", "max", "min"])
     .reset_index()
     .rename(columns={
-        "count": "# Shifts",
+        "count": "# Days",
         "mean": "Avg Daily LB Produced",
         "max": "Most Productive Day",
         "min": "Least Productive Day"
