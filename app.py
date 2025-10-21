@@ -147,11 +147,17 @@ fig2.update_layout(
 st.plotly_chart(fig2, use_container_width=True)
 
 # -----------------------------------------------------------
-# Aggregated summary table
+# Aggregated summary table (daily-level aggregation)
 # -----------------------------------------------------------
 st.markdown("---")
-st.subheader("Aggregated Summary by Machine")
+st.subheader("Aggregated Summary by Machine (Daily Totals Combined)")
+
+# Rename for display consistency
+display_df = agg_df.rename(columns={"# Days": "# Days (with Data)"})
+
 st.dataframe(
-    agg_df[["Machine Name", "Avg Daily LB Produced", "# Shifts", "Most Productive Day", "Least Productive Day"]],
+    display_df[
+        ["Machine Name", "Avg Daily LB Produced", "# Days (with Data)", "Most Productive Day", "Least Productive Day"]
+    ],
     use_container_width=True,
 )
