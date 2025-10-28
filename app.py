@@ -11,7 +11,7 @@ data_path = Path("data/September Averages.xlsx")
 sheet_name = "Daily by Shifts"
 
 st.title("🏭 Production Output Dashboard")
-st.write("Shift Date Range: September 4-Oct 17, 2025")
+st.write("Shift Date Range: September 4-Oct 24, 2025")
 
 try:
     df = pd.read_excel(data_path, sheet_name=sheet_name, engine="openpyxl")
