@@ -7,16 +7,16 @@ from pathlib import Path
 st.set_page_config(page_title="Production Output Dashboard", layout="wide")
 
 # Path relative to repo root
-data_path = Path("data/September Averages.xlsx")
+data_path = Path("data/daily_logs.xlsx")
 sheet_name = "Daily by Shifts"
 
 st.title("🏭 Production Output Dashboard")
-st.write("Shift Date Range: September 4-Oct 24, 2025")
+st.write("Shift Date Range: September 4-Oct 31, 2025")
 
 try:
     df = pd.read_excel(data_path, sheet_name=sheet_name, engine="openpyxl")
 except FileNotFoundError:
-    st.error("❌ Could not find 'data/September Averages.xlsx'. Make sure it's included in the repo.")
+    st.error("❌ Could not find 'data/daily_logs.xlsx'. Make sure it's included in the repo.")
     st.stop()
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
