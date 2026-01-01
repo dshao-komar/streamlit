@@ -7,7 +7,8 @@ from pathlib import Path
 st.set_page_config(page_title="Production Output Dashboard", layout="wide")
 
 # Path relative to repo root
-data_path = Path("data/daily_logs.xlsx")
+PROD_LOGS_ROOT = Path(__file__).resolve().parents[3]
+data_path = PROD_LOGS_ROOT / "data_inputs" / "daily_logs.xlsx"
 sheet_name = "Daily by Shifts"
 
 st.title("🏭 Production Output Dashboard")
