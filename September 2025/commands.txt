@@ -1,0 +1,30 @@
+python build_prod_logs.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\912 Production Logs Manual_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_three_tabs_named.xlsx" \
+  --fuzzy 85
+
+# DONE
+python build_prod_logs_append.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\doc18142020251006091250_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_by_machine_1.xlsx" \
+  --fuzzy 55
+
+python build_prod_logs_append.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\doc18142020251006091250_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_by_machine_1.xlsx" \
+  --fuzzy 55
+
+python build_prod_logs_append.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\doc18142020251006091250_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_by_machine_1.xlsx" \
+  --fuzzy 55
+
+python build_prod_logs_append.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\doc18142020251006091250_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_by_machine_1.xlsx" \
+  --fuzzy 55
+
+python build_prod_logs_append.py \
+  --json "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\doc18142020251006091250_ocr.pdf.json" \
+  --out "C:\Users\DanShao\OneDrive - Komar Alliance\Production Logs\September 2025\production_logs_by_machine_1.xlsx" \
+  --fuzzy 55
