@@ -7,12 +7,12 @@ from pathlib import Path
 st.set_page_config(page_title="Production Output Dashboard", layout="wide")
 
 # Path relative to repo root
-PROD_LOGS_ROOT = Path(__file__).resolve().parents[3]
+PROD_LOGS_ROOT = Path(__file__).resolve().parents[2]
 data_path = PROD_LOGS_ROOT / "data_inputs" / "daily_logs.xlsx"
 sheet_name = "Daily by Shifts"
 
 st.title("🏭 Production Output Dashboard")
-st.write("Shift Date Range: September 4-Oct 31, 2025")
+st.write("Shift Date Range: September 4-Nov 26, 2025")
 
 try:
     df = pd.read_excel(data_path, sheet_name=sheet_name, engine="openpyxl")
